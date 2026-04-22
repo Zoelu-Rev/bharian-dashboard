@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Berita Harian — Editorial Command Center</title>
+    <style>
+        :root {
+            --primary: #0f172a;
+            --card: #1e293b;
+            --card-hover: #273549;
+            --border: #334155;
+            --green: #10b981;
+            --green-bg: rgba(16, 185, 129, 0.1);
+            --green-border: rgba(16, 185, 129, 0.25);
+            --yellow: #f59e0b;
+            --yellow-bg: rgba(245, 158, 11, 0.1);
+            --yellow-border: rgba(245, 158, 11, 0.25);
+            --blue: #3b82f6;
+            --blue-bg: rgba(59, 130, 246, 0.1);
+            --purple: #8b5cf6;
+            --red: #e63946;
+            --red-bg: rgba(230, 57, 70, 0.1);
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--primary);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ============ HEADER ============ */
+        .header {
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left { display: flex; align-items: center; gap: 20px; }
+
+        .logo { font-size: 18px; font-weight: 900; color: #fff; letter-spacing: -0.5px; }
+        .logo span { color: #e63946; }
+        .logo-sub { font-size: 11px; color: var(--text-dim); font-weight: 400; display: block; margin-top: -2px; }
+
+        .header-divider { width: 1px; height: 28px; background: var(--border); }
+
+        .session-badge {
+            font-size: 11px; padding: 4px 12px; border-radius: 20px;
+            background: var(--green-bg); color: var(--green);
+            border: 1px solid var(--green-border); font-weight: 600;
+        }
+
+        .header-right { display: flex; align-items: center; gap: 16px; }
+
+        .live-indicator { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--text-muted); }
+
+        .live-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--green); animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        .refresh-time { font-size: 12px; color: var(--text-dim); }
+        .countdown { font-size: 12px; font-weight: 700; color: var(--yellow); background: var(--yellow-bg); padding: 4px 12px; border-radius: 20px; border: 1px solid var(--yellow-border); }
+
+        .btn {
+            padding: 7px 14px; border-radius: 7px; border: 1px solid var(--border);
+            background: var(--card); color: var(--text); font-size: 12px;
+            cursor: pointer; transition: all 0.2s; font-family: inherit;
+        }
+        .btn:hover { background: var(--card-hover); border-color: var(--text-dim); }
+
+        /* ============ MAIN ============ */
+        .main { padding: 20px 28px; max-width: 1600px; margin: 0 auto; }
+
+        /* ============ KPI ROW ============ */
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .kpi-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 18px;
+        }
+
+        .kpi-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.6px; font-weight: 500; margin-bottom: 6px; }
+        .kpi-value { font-size: 32px; font-weight: 800; color: #fff; line-height: 1; margin-bottom: 6px; }
+        .kpi-sub { font-size: 12px; color: var(--text-dim); }
+        .kpi-icon { float: right; font-size: 20px; margin-top: -8px; opacity: 0.5; }
+
+        /* ============ CARD ============ */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 18px;
+        }
+
+        .card-header {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-title { font-size: 13px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
+
+        .card-badge {
+            font-size: 10px; padding: 3px 8px; border-radius: 6px;
+            background: rgba(255,255,255,0.07); color: var(--text-dim); font-weight: 500;
+        }
+
+        .card-badge.live {
+            background: var(--green-bg); color: var(--green);
+            border: 1px solid var(--green-border);
+        }
+
+        .card-badge.scheduled {
+            background: var(--yellow-bg); color: var(--yellow);
+            border: 1px solid var(--yellow-border);
+        }
+
+        .update-timestamp {
+            font-size: 10px; color: var(--text-dim); font-weight: 400;
+            display: flex; align-items: center; gap: 4px;
+        }
+
+        .update-timestamp .dot { font-size: 6px; }
+
+        /* ============ TOP ARTICLES (NOW FIRST) ============ */
+        .article-list { list-style: none; }
+
+        .article-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 18px;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+            transition: background 0.15s;
+        }
+        .article-item:last-child { border-bottom: none; }
+        .article-item:hover { background: rgba(255,255,255,0.02); }
+
+        .article-rank {
+            min-width: 26px; height: 26px; border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 800;
+            background: rgba(255,255,255,0.05); color: var(--text-dim); flex-shrink: 0;
+        }
+        .article-rank.rank-1 { background: rgba(245, 158, 11, 0.25); color: #f59e0b; }
+        .article-rank.rank-2 { background: rgba(148, 163, 184, 0.15); color: #94a3b4b4; }
+        .article-rank.rank-3 { background: rgba(180, 120, 60, 0.2); color: #b87333; }
+
+        .article-body { flex: 1; min-width: 0; }
+
+        .article-title {
+            font-size: 12.5px; font-weight: 500; color: #fff;
+            margin-bottom: 3px; line-height: 1.4;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        .article-meta { display: flex; align-items: center; gap: 5px; font-size: 10.5px; color: var(--text-dim); }
+
+        .meta-tag {
+            padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: 500;
+        }
+        .meta-tag.social { background: rgba(59, 130, 246, 0.15); color: var(--blue); }
+        .meta-tag.search { background: rgba(139, 92, 246, 0.15); color: var(--purple); }
+        .meta-tag.direct { background: rgba(16, 185, 129, 0.15); color: var(--green); }
+        .meta-tag.discover { background: rgba(245, 158, 11, 0.15); color: var(--yellow); }
+
+        .article-stats { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0; }
+        .stat-readers { font-size: 15px; font-weight: 800; color: #fff; }
+        .stat-readers-label { font-size: 10px; color: var(--text-dim); }
+        .engagement-bar-wrap { width: 56px; height: 3px; background: rgba(255,255,255,0.07); border-radius: 2px; margin-top: 3px; }
+        .engagement-bar { height: 3px; border-radius: 2px; background: var(--green); transition: width 0.8s ease; }
+
+        /* ============ DO MORE + WATCH (SIDE BY SIDE) ============ */
+        .content-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .signal-card {
+            border-radius: 12px;
+            padding: 18px 20px;
+            border: 1px solid;
+            background: var(--card);
+        }
+
+        .signal-card.green { border-color: var(--green-border); }
+        .signal-card.yellow { border-color: var(--yellow-border); }
+
+        .signal-header {
+            display: flex; align-items: flex-start; justify-content: space-between;
+            margin-bottom: 14px; padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .signal-header-left { display: flex; align-items: center; gap: 10px; }
+
+        .signal-icon {
+            width: 34px; height: 34px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; flex-shrink: 0;
+        }
+
+        .signal-card.green .signal-icon { background: rgba(16, 185, 129, 0.2); }
+        .signal-card.yellow .signal-icon { background: rgba(245, 158, 11, 0.2); }
+
+        .signal-card.green .signal-title { font-size: 13px; font-weight: 800; color: var(--green); }
+        .signal-card.yellow .signal-title { font-size: 13px; font-weight: 800; color: var(--yellow); }
+
+        .signal-desc {
+            font-size: 11px; color: var(--text-dim); margin-top: 2px;
+        }
+
+        .signal-list { list-style: none; }
+
+        .signal-list li {
+            padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 13px; color: var(--text); line-height: 1.5;
+        }
+        .signal-list li:last-child { border-bottom: none; }
+        .signal-list li::before { display: none; }
+
+        .rec-label {
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.5px; color: var(--text-dim);
+            margin-bottom: 3px; display: block;
+        }
+
+        .rec-title {
+            font-size: 13px; font-weight: 600; color: #fff;
+            margin-bottom: 3px; line-height: 1.4;
+        }
+
+        .rec-why { font-size: 11.5px; color: var(--text-muted); line-height: 1.4; }
+
+        .rec-tags { margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px; }
+
+        .rec-tag {
+            font-size: 10px; padding: 2px 7px; border-radius: 4px;
+            background: rgba(255,255,255,0.08); color: var(--text-muted);
+        }
+        .rec-tag.keyword { background: rgba(59, 130, 246, 0.15); color: var(--blue); }
+        .rec-tag.timing { background: rgba(245, 158, 11, 0.15); color: var(--yellow); }
+        .rec-tag.type { background: rgba(16, 185, 129, 0.15); color: var(--green); }
+
+        /* ============ TRAFFIC + WEBMASTER (SIDE BY SIDE) ============ */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+
+        .sources-body { padding: 12px 18px; }
+
+        .source-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 0; border-bottom: 1px solid rgba(51, 65, 85, 0.4);
+        }
+        .source-item:last-child { border-bottom: none; }
+
+        .source-left { display: flex; align-items: center; gap: 10px; }
+
+        .source-icon {
+            width: 30px; height: 30px; border-radius: 7px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px;
+        }
+        .source-icon.social { background: rgba(59, 130, 246, 0.15); }
+        .source-icon.search { background: rgba(139, 92, 246, 0.15); }
+        .source-icon.direct { background: rgba(16, 185, 129, 0.15); }
+        .source-icon.discover { background: rgba(245, 158, 11, 0.15); }
+        .source-icon.other { background: rgba(255,255,255,0.05); }
+
+        .source-name { font-size: 12.5px; color: var(--text); font-weight: 500; }
+        .source-visitors { font-size: 14px; font-weight: 700; color: #fff; }
+        .source-pct { font-size: 11px; color: var(--text-dim); margin-left: 4px; }
+
+        /* ============ WEBMASTER ACTION PLAN (ENHANCED) ============ */
+        .webmaster-body { padding: 14px 18px; }
+
+        .wm-platform-section {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(51, 65, 85, 0.6);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 12px;
+        }
+        .wm-platform-section:last-child { margin-bottom: 0; }
+
+        .wm-platform-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .wm-platform-label {
+            font-size: 13px; font-weight: 800;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .wm-platform-label.facebook { color: #1877f2; }
+        .wm-platform-label.twitter { color: #1da1f2; }
+        .wm-platform-label.whatsapp { color: #25d366; }
+        .wm-platform-label.tiktok { color: #ff0050; }
+
+        .wm-action-pill {
+            font-size: 9px; padding: 3px 8px; border-radius: 10px;
+            background: rgba(255,255,255,0.06); color: var(--text-dim);
+            font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px;
+        }
+
+        .wm-action-steps { list-style: none; }
+
+        .wm-action-step {
+            display: flex; gap: 10px; padding: 7px 0;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.3);
+            font-size: 12px; color: var(--text-muted); line-height: 1.5;
+        }
+        .wm-action-step:last-child { border-bottom: none; }
+
+        .step-num {
+            min-width: 20px; height: 20px; border-radius: 50%;
+            background: rgba(255,255,255,0.08); color: var(--text-dim);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; font-weight: 700; flex-shrink: 0; margin-top: 1px;
+        }
+
+        .step-text strong { color: var(--text); }
+
+        .wm-step-highlight {
+            background: rgba(255,255,255,0.05);
+            border-radius: 6px; padding: 8px 10px;
+            margin-top: 8px; font-size: 11px; color: var(--text-dim);
+            font-style: italic;
+        }
+
+        .wm-step-highlight strong { color: var(--yellow); font-style: normal; }
+
+        .wm-best-times {
+            display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;
+        }
+
+        .time-chip {
+            font-size: 10px; padding: 3px 8px; border-radius: 10px;
+            background: rgba(245, 158, 11, 0.12); color: var(--yellow);
+            font-weight: 600;
+        }
+
+        /* ============ SECTIONS ============ */
+        .grid-3 { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; margin-bottom: 18px; }
+
+        .section-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            padding: 14px 18px;
+        }
+
+        .section-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(51, 65, 85, 0.6);
+            border-radius: 10px;
+            padding: 12px;
+        }
+
+        .section-name { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; font-weight: 600; }
+        .section-visitors { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 6px; }
+        .section-bar-bg { height: 4px; background: rgba(255,255,255,0.07); border-radius: 2px; margin-bottom: 6px; }
+        .section-bar-fill { height: 4px; border-radius: 2px; transition: width 0.8s ease; }
+        .section-bar-fill.high { background: var(--green); }
+        .section-bar-fill.mid { background: var(--yellow); }
+        .section-bar-fill.low { background: var(--text-dim); }
+        .section-meta { font-size: 10.5px; color: var(--text-dim); }
+
+        /* ============ SCHEDULE ============ */
+        .schedule-body { padding: 14px 18px; }
+
+        .slot-current {
+            text-align: center; padding: 14px;
+            background: var(--green-bg); border: 1px solid var(--green-border);
+            border-radius: 10px; margin-bottom: 14px;
+        }
+
+        .slot-current-time { font-size: 24px; font-weight: 900; color: var(--green); }
+        .slot-current-label { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+        .slot-current-label strong { color: var(--green); }
+
+        .schedule-table { width: 100%; }
+
+        .schedule-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 0; border-bottom: 1px solid rgba(51, 65, 85, 0.3);
+            font-size: 12px;
+        }
+        .schedule-row:last-child { border-bottom: none; }
+
+        .schedule-time-col { display: flex; align-items: center; gap: 8px; }
+        .schedule-time { color: var(--text-muted); font-weight: 500; min-width: 55px; }
+        .schedule-name { color: var(--text); font-weight: 600; }
+        .schedule-purpose { color: var(--text-dim); font-size: 11px; }
+
+        .schedule-dot {
+            width: 6px; height: 6px; border-radius: 50%; background: var(--text-dim);
+        }
+        .schedule-dot.active { background: var(--green); }
+
+        .rt-badge {
+            font-size: 9px; padding: 2px 6px; border-radius: 4px;
+            background: rgba(16, 185, 129, 0.12); color: var(--green);
+            font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;
+        }
+
+        .rt-badge.scheduled {
+            background: rgba(245, 158, 11, 0.12); color: var(--yellow);
+        }
+
+        /* ============ LOADING ============ */
+        .loading-overlay {
+            position: fixed; inset: 0; background: var(--primary);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 9999; transition: opacity 0.4s;
+        }
+        .loading-overlay.hidden { opacity: 0; pointer-events: none; }
+        .loading-content { text-align: center; }
+        .loading-spinner {
+            width: 40px; height: 40px; border: 3px solid var(--border);
+            border-top-color: #e63946; border-radius: 50%;
+            animation: spin 0.8s linear infinite; margin: 0 auto 14px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { font-size: 14px; color: var(--text-muted); }
+
+        /* ============ TOAST ============ */
+        .refresh-toast {
+            position: fixed; bottom: 24px; right: 24px;
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 10px; padding: 12px 18px; font-size: 12px;
+            color: var(--text-muted); display: flex; align-items: center;
+            gap: 10px; z-index: 1000; opacity: 0;
+            transform: translateY(10px); transition: all 0.3s;
+            pointer-events: none;
+        }
+        .refresh-toast.show { opacity: 1; transform: translateY(0); }
+        .refresh-toast svg { animation: spin 1s linear infinite; }
+
+        /* ============ RESPONSIVE ============ */
+        @media (max-width: 1200px) {
+            .kpi-row { grid-template-columns: repeat(2, 1fr); }
+            .content-row { grid-template-columns: 1fr; }
+            .grid-2 { grid-template-columns: 1fr; }
+            .grid-3 { grid-template-columns: 1fr; }
+            .section-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .kpi-row { grid-template-columns: 1fr; }
+            .header { flex-direction: column; gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Loading live data...</div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <div class="logo">BERITA<span>HARIAN</span><span class="logo-sub">Editorial Command Center</span></div>
+            <div class="header-divider"></div>
+            <div class="session-badge" id="sessionBadge">📡 Loading...</div>
+        </div>
+        <div class="header-right">
+            <div class="live-indicator">
+                <div class="live-dot" id="liveDot"></div>
+                <span id="liveText">Connecting...</span>
+            </div>
+            <div class="refresh-time">Updated: <span id="lastUpdated">--:--:--</span></div>
+            <div class="countdown" id="countdown">Next: --:--</div>
+            <button class="btn" onclick="toggleFullscreen()">⛶ Full Screen</button>
+            <button class="btn" onclick="refreshNow()">↻ Refresh</button>
+        </div>
+    </div>
+
+    <!-- Main -->
+    <div class="main">
+
+        <!-- KPIs -->
+        <div class="kpi-row">
+            <div class="kpi-card">
+                <div class="kpi-label">Active Readers Now</div>
+                <div class="kpi-value" id="kpiReaders">--</div>
+                <div class="kpi-sub" id="kpiReadersTrend">Loading...</div>
+                <div class="kpi-icon">👥</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Today's Total Visits</div>
+                <div class="kpi-value" id="kpiVisits">--</div>
+                <div class="kpi-sub">All pages</div>
+                <div class="kpi-icon">📄</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Avg. Time on Page</div>
+                <div class="kpi-value" id="kpiTime">--</div>
+                <div class="kpi-sub" id="kpiTimeMeta">min avg</div>
+                <div class="kpi-icon">⏱</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Social Traffic</div>
+                <div class="kpi-value" id="kpiSocial">--</div>
+                <div class="kpi-sub" id="kpiSocialPct">--</div>
+                <div class="kpi-icon">📱</div>
+            </div>
+        </div>
+
+        <!-- TOP ARTICLES (MOVED UP) -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">🔥 Top Articles Right Now</div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <div class="update-timestamp" id="articlesTimestamp">
+                        <span class="dot">●</span> LIVE — refreshes every 30 seconds
+                    </div>
+                    <div class="card-badge live">● LIVE</div>
+                </div>
+            </div>
+            <ul class="article-list" id="articleList">
+                <li class="article-item"><div style="text-align:center;color:var(--text-dim);padding:20px;">Loading...</div></li>
+            </ul>
+        </div>
+
+        <!-- DO MORE + WATCH THIS -->
+        <div class="content-row">
+            <!-- DO MORE -->
+            <div class="signal-card green">
+                <div class="signal-header">
+                    <div class="signal-header-left">
+                        <div class="signal-icon">📰</div>
+                        <div>
+                            <div class="signal-title">✅ DO MORE OF THIS</div>
+                            <div class="signal-desc">Suggested next articles based on what's working right now.</div>
+                        </div>
+                    </div>
+                    <div class="update-timestamp" id="doMoreTimestamp">
+                        <span class="dot">●</span> Next: --:--
+                    </div>
+                </div>
+                <ul class="signal-list" id="doMore">
+                    <li>Loading recommendations...</li>
+                </ul>
+            </div>
+
+            <!-- WATCH THIS -->
+            <div class="signal-card yellow">
+                <div class="signal-header">
+                    <div class="signal-header-left">
+                        <div class="signal-icon">👀</div>
+                        <div>
+                            <div class="signal-title">👀 EDITORIAL ALERTS</div>
+                            <div class="signal-desc">Things your team should know and act on today.</div>
+                        </div>
+                    </div>
+                    <div class="update-timestamp" id="watchTimestamp">
+                        <span class="dot">●</span> Next: --:--
+                    </div>
+                </div>
+                <ul class="signal-list" id="watchThis">
+                    <li>Loading alerts...</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Traffic Sources + Webmaster -->
+        <div class="grid-2">
+            <!-- Traffic Sources -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">🌐 Where Readers Are Coming From</div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <div class="update-timestamp" id="sourcesTimestamp">
+                            <span class="dot">●</span> LIVE — refreshes every 30 seconds
+                        </div>
+                        <div class="card-badge live">● LIVE</div>
+                    </div>
+                </div>
+                <div class="sources-body" id="sourcesBody">
+                    <div style="text-align:center;color:var(--text-dim);padding:20px;">Loading...</div>
+                </div>
+            </div>
+
+            <!-- Webmaster Social Action Plan -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">📱 Social Media Action Plan</div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <div class="update-timestamp" id="webmasterTimestamp">
+                            <span class="dot">●</span> Next: --:--
+                        </div>
+                        <div class="card-badge scheduled">Scheduled</div>
+                    </div>
+                </div>
+                <div class="webmaster-body" id="webmasterBody">
+                    <div style="text-align:center;color:var(--text-dim);padding:20px;">Loading...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sections + Schedule -->
+        <div class="grid-3">
+            <!-- Content Sections -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">📂 Content Section Performance</div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <div class="update-timestamp" id="sectionsTimestamp">
+                            <span class="dot">●</span> Next: --:--
+                        </div>
+                        <div class="card-badge scheduled">Scheduled</div>
+                    </div>
+                </div>
+                <div class="section-grid" id="sectionGrid">
+                    <div class="section-card">
+                        <div class="section-name">Loading...</div>
+                        <div class="section-visitors">--</div>
+                        <div class="section-bar-bg"><div class="section-bar-fill high" style="width:0%"></div></div>
+                        <div class="section-meta">Analyzing...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Refresh Schedule -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">⏰ Refresh Schedule</div>
+                </div>
+                <div class="schedule-body">
+                    <div class="slot-current">
+                        <div class="slot-current-time" id="nextSlotTime">--:--</div>
+                        <div class="slot-current-label">Next full update — <strong>Top Articles & Traffic: always live (30s)</strong></div>
+                    </div>
+                    <div class="schedule-table">
+                        <div class="schedule-row">
+                            <div class="schedule-time-col">
+                                <div class="schedule-dot" id="dot-0745"></div>
+                                <div>
+                                    <div class="schedule-time">7:45 AM</div>
+                                    <div class="schedule-purpose">Morning Brief</div>
+                                </div>
+                            </div>
+                            <span class="rt-badge">● LIVE sections</span>
+                        </div>
+                        <div class="schedule-row">
+                            <div class="schedule-time-col">
+                                <div class="schedule-dot" id="dot-1345"></div>
+                                <div>
+                                    <div class="schedule-time">1:45 PM</div>
+                                    <div class="schedule-purpose">Midday Update</div>
+                                </div>
+                            </div>
+                            <span class="rt-badge">● LIVE sections</span>
+                        </div>
+                        <div class="schedule-row">
+                            <div class="schedule-time-col">
+                                <div class="schedule-dot" id="dot-1645"></div>
+                                <div>
+                                    <div class="schedule-time">4:45 PM</div>
+                                    <div class="schedule-purpose">Pre-Evening Push</div>
+                                </div>
+                            </div>
+                            <span class="rt-badge">● LIVE sections</span>
+                        </div>
+                        <div class="schedule-row">
+                            <div class="schedule-time-col">
+                                <div class="schedule-dot" id="dot-1945"></div>
+                                <div>
+                                    <div class="schedule-time">7:45 PM</div>
+                                    <div class="schedule-purpose">Evening Wrap-Up</div>
+                                </div>
+                            </div>
+                            <span class="rt-badge">● LIVE sections</span>
+                        </div>
+                    </div>
+                    <div style="margin-top:14px;padding:10px;background:rgba(255,255,255,0.03);border-radius:8px;font-size:11px;color:var(--text-dim);line-height:1.6;">
+                        <strong style="color:var(--text-muted);">LIVE (every 30s):</strong> Top Articles & Traffic Sources<br>
+                        <strong style="color:var(--text-muted);">Scheduled (4x daily):</strong> Do More · Alerts · Sections · Social Plan
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="refresh-toast" id="refreshToast">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+        <span id="toastText">Refreshing...</span>
+    </div>
+
+    <script>
+    // ============================================================
+    //  CONFIG
+    // ============================================================
+    const CONFIG = {
+        apiKey: 'ab0225a300ab5816e6d3c5abc344b241',
+        host: 'bharian.com.my',
+        refreshSlots: ['07:45', '13:45', '16:45', '19:45'],
+        checkInterval: 30000,  // 30 seconds for live data
+        fullRefreshInterval: 5 * 60 * 1000  // 5 min for scheduled sections (testing — change to match slot timing in production)
+    };
+
+    // Track last full refresh time for timestamps
+    let lastFullRefresh = null;
+    let lastLiveRefresh = null;
+
+    // ============================================================
+    //  API
+    // ============================================================
+    async function fetchTopPages() {
+        const res = await fetch(
+            `https://api.chartbeat.com/live/toppages/v3/?host=${CONFIG.host}&apikey=${CONFIG.apiKey}&limit=15`
+        );
+        if (!res.ok) throw new Error('API error: ' + res.status);
+        return res.json();
+    }
+
+    async function fetchReferrers() {
+        const res = await fetch(
+            `https://api.chartbeat.com/live/referrers/v3/?host=${CONFIG.host}&apikey=${CONFIG.apiKey}`
+        );
+        if (!res.ok) throw new Error('API error: ' + res.status);
+        return res.json();
+    }
+
+    // ============================================================
+    //  DATA PROCESSING
+    // ============================================================
+    function processData(pagesData, referrersData) {
+        const pages = pagesData.pages || [];
+        const refs = referrersData.referrers || {};
+
+        const totalVisitors = pages.reduce((s, p) => s + (p.stats?.people || 0), 0);
+        const totalVisits = pages.reduce((s, p) => s + (p.stats?.visits || 0), 0);
+
+        const articlePages = pages.filter(p => p.stats?.article > 0);
+        const avgEngagement = articlePages.length > 0
+            ? articlePages.reduce((s, p) => s + (p.stats?.engaged_time?.avg || 0), 0) / articlePages.length
+            : 0;
+
+        // Traffic sources
+        const sourceMap = {
+            'Google Discover': { label: 'Google Discover', icon: 'discover', class: 'discover' },
+            'Google Search': { label: 'Google Search', icon: 'search', class: 'search' },
+            'Facebook': { label: 'Facebook', icon: 'social', class: 'social' },
+            'Twitter': { label: 'X (Twitter)', icon: 'social', class: 'social' },
+            'Bing': { label: 'Bing', icon: 'search', class: 'search' },
+            'Yahoo Search': { label: 'Yahoo', icon: 'search', class: 'search' },
+            'YouTube': { label: 'YouTube', icon: 'social', class: 'social' }
+        };
+
+        const sources = {};
+        let socialTotal = 0, searchTotal = 0, discoverTotal = 0, directTotal = 0;
+
+        Object.entries(refs).forEach(([domain, count]) => {
+            if (domain === '' || domain === 'direct' || domain === 'Direct') {
+                directTotal += count;
+                return;
+            }
+            const info = sourceMap[domain];
+            if (info) {
+                if (!sources[domain]) sources[domain] = { ...info, count };
+                else sources[domain].count += count;
+                if (info.icon === 'social') socialTotal += count;
+                else if (info.icon === 'search') searchTotal += count;
+                else if (info.icon === 'discover') discoverTotal += count;
+            }
+        });
+
+        if (directTotal > 0) sources['Direct'] = { label: 'Direct / Bookmark', icon: 'direct', class: 'direct', count: directTotal };
+
+        const sourceTotal = Object.values(refs).reduce((s, v) => s + v, 0) || 1;
+        const sortedSources = Object.values(sources).sort((a, b) => b.count - a.count);
+
+        // Sections from URL
+        const sectionMap = {};
+        pages.forEach(p => {
+            const path = p.path || '';
+            let section = 'Other';
+            if (path.includes('/berita/nasional') || path.includes('/berita/kes')) section = 'Nasional';
+            else if (path.includes('/dunia/')) section = 'Dunia';
+            else if (path.includes('/hiburan/') || path.includes('/selebriti/')) section = 'Hiburan';
+            else if (path.includes('/sukan/') || path.includes('/bola/')) section = 'Sukan';
+            else if (path.includes('/bisnes/') || path.includes('/ekonomi/')) section = 'Bisnes';
+            else if (path.includes('/berita/')) section = 'Berita';
+            else if (path.endsWith('/') && !path.includes('.')) section = 'Homepage';
+
+            if (!sectionMap[section]) sectionMap[section] = { name: section, visitors: 0, articles: 0, totalEng: 0, engCount: 0 };
+            sectionMap[section].visitors += p.stats?.people || 0;
+            sectionMap[section].articles += 1;
+            if (p.stats?.engaged_time?.avg) { sectionMap[section].totalEng += p.stats.engaged_time.avg; sectionMap[section].engCount++; }
+        });
+
+        const sections = Object.values(sectionMap)
+            .map(s => ({ ...s, avgEng: s.engCount > 0 ? s.totalEng / s.engCount : 0 }))
+            .filter(s => s.visitors > 0)
+            .sort((a, b) => b.visitors - a.visitors);
+
+        const recommendations = generateRecommendations(pages, sortedSources, sections, socialTotal, searchTotal, discoverTotal, sourceTotal, articlePages);
+
+        return {
+            totalVisitors,
+            totalVisits,
+            avgEngagement,
+            socialTotal,
+            socialPct: ((socialTotal / sourceTotal) * 100).toFixed(0),
+            searchTotal,
+            searchPct: ((searchTotal / sourceTotal) * 100).toFixed(0),
+            discoverTotal,
+            discoverPct: ((discoverTotal / sourceTotal) * 100).toFixed(0),
+            sourceTotal,
+            sortedSources,
+            sections,
+            topArticles: pages.slice(0, 10),
+            recommendations,
+            topSource: sortedSources[0] || null,
+            fbSource: sortedSources.find(s => s.label === 'Facebook') || null,
+            xSource: sortedSources.find(s => s.label === 'X (Twitter)') || null,
+            waSource: sortedSources.find(s => s.label.includes('WhatsApp')) || null
+        };
+    }
+
+    function generateRecommendations(pages, sortedSources, sections, socialTotal, searchTotal, discoverTotal, total, articlePages) {
+        const doMore = [];
+        const watchThis = [];
+
+        const top5 = articlePages.slice(0, 5);
+
+        // ========================================
+        // DO MORE: Story angles + suggested titles (plain language)
+        // ========================================
+
+        // 1. Top article follow-up
+        if (top5.length > 0) {
+            const top = top5[0];
+            const title = top.title || '';
+            const engagedTime = top.stats?.engaged_time?.avg || 0;
+            const readers = top.stats?.people || 0;
+            const refs = top.stats?.toprefs || [];
+            const topRef = refs[0]?.domain || '';
+
+            const keywords = extractKeywords(title);
+            let suggestedAngle = '';
+            let suggestedTitle = '';
+            let tags = [];
+
+            if (title.toLowerCase().includes('zakat') || title.toLowerCase().includes('seleweng') || title.toLowerCase().includes('tuduhan') || title.toLowerCase().includes('sprm')) {
+                suggestedAngle = '📝 Write this next';
+                suggestedTitle = `${keywords[0] || 'Kes'} | Siapa Lagi Yang Terlibat?`;
+                tags = [' SPRM', ' siasatan', ' pesalah', ' follow-up'];
+            } else if (title.toLowerCase().includes('anne hathaway') || title.toLowerCase().includes('selebriti') || title.toLowerCase().includes('puteri sarah') || title.toLowerCase().includes('viral')) {
+                suggestedAngle = '📝 Write this next';
+                suggestedTitle = `Netizen seru — Apa Pendapat Anda?`;
+                tags = [' viral', ' reaksi', ' netizen', ' selebriti'];
+            } else if (title.toLowerCase().includes('trump') || title.toLowerCase().includes('iran') || title.toLowerCase().includes('amerika') || title.toLowerCase().includes('dunia')) {
+                suggestedAngle = '📝 Write this next';
+                suggestedTitle = `${title.substring(0, 40)}... — Apa Impaknya Ke Malaysia?`;
+                tags = [' Malaysia', ' impak', ' ANALISA'];
+            } else if (title.toLowerCase().includes('rashford') || title.toLowerCase().includes('sukan') || title.toLowerCase().includes('bola') || title.toLowerCase().includes('liga')) {
+                suggestedAngle = '📝 Write this next';
+                suggestedTitle = `Peminat seru — Pendapat Anda?`;
+                tags = [' liga', ' peminat', ' reaksi', ' follow-up'];
+            } else {
+                suggestedAngle = '📝 Write this next';
+                suggestedTitle = `${title.substring(0, 40)}... — Apa Pandangan Rakyat Malaysia?`;
+                tags = [' Malaysia', ' pendapat', ' rakyat'];
+            }
+
+            doMore.push({
+                angle: suggestedAngle,
+                title: suggestedTitle,
+                why: `${readers} pembaca — ${engagedTime > 30 ? Math.round(engagedTime) + ' min baca (tinggi)' : 'purata ' + Math.round(engagedTime) + ' min'}. Sumber: ${topRef || 'online'}`,
+                tags,
+                type: 'editorial'
+            });
+        }
+
+        // 2. Second top article — same audience, different angle
+        if (top5.length > 1) {
+            const second = top5[1];
+            const title = second.title || '';
+            const readers = second.stats?.people || 0;
+            const engagedTime = second.stats?.engaged_time?.avg || 0;
+
+            if (title && readers > 20) {
+                doMore.push({
+                    angle: '📝 Write this next',
+                    title: title.length > 60 ? title.substring(0, 60) + '...' : title,
+                    why: `${readers} pembaca — ${engagedTime > 30 ? Math.round(engagedTime) + ' min baca (tinggi)' : 'purata ' + Math.round(engagedTime) + ' min'}. Topik popular — follow up sekarang.`,
+                    tags: [' follow-up', ' related', ' trending'],
+                    type: 'editorial'
+                });
+            }
+        }
+
+        // 3. Social sharing opportunity
+        const socialArticles = articlePages.filter(p => (p.stats?.social || 0) > (p.stats?.people || 1) * 0.2);
+        if (socialArticles.length > 0) {
+            const topSocial = socialArticles[0];
+            const title = topSocial.title || '';
+            const socialCount = topSocial.stats?.social || 0;
+
+            doMore.push({
+                angle: '📱 Share this again',
+                title: title.length > 60 ? title.substring(0, 60) + '...' : title,
+                why: `${socialCount} kunjungan dari social media. Tajuk ini viral — kongsi lagi.`,
+                tags: [' viral', ' social', ' kongsi lagi'],
+                type: 'social'
+            });
+        }
+
+        // 4. Section gap opportunity
+        const topSectionNames = new Set(top5.map(p => detectSection(p.path)));
+        const uncovered = sections.filter(s => !topSectionNames.has(s.name) && s.visitors > 30);
+        if (uncovered.length > 0) {
+            const gap = uncovered[0];
+            doMore.push({
+                angle: '📝 Publish this section',
+                title: `${gap.name} — ${gap.articles} artikel, ${gap.visitors} pembaca aktif`,
+                why: `Pembaca aktif di ${gap.name} tapi tiada cerita baharu trending. Publish sekarang.`,
+                tags: [` ${gap.name}`, ' kandungan baharu'],
+                type: 'gap'
+            });
+        }
+
+        // Ensure 3 minimum
+        if (doMore.length < 3) {
+            doMore.push({
+                angle: '📝 TERKINI update',
+                title: 'TERKINI — Follow up cerita trending',
+                why: 'Pembaca mahu update terkini. Post TERKINI supaya mereka terus kembali.',
+                tags: [' TERKINI', ' breaking', ' update'],
+                type: 'momentum'
+            });
+        }
+
+        // ========================================
+        // WATCH THIS: Only editorial-relevant, plain language
+        // ========================================
+
+        if (socialTotal > searchTotal * 0.3) {
+            watchThis.push({
+                alert: `📘 ${Math.round((socialTotal/total)*100)}% pembaca datang dari social media`,
+                action: `Webmaster: post 3x hari ini. Tajuk soalan (“Apa pendapat anda?”) dapat lebih banyak shares.`
+            });
+        }
+
+        const fb = sortedSources.find(s => s.label === 'Facebook');
+        if (fb && fb.count > 30) {
+            watchThis.push({
+                alert: `📘 Facebook — sumber traffic #1 hari ini (${fb.count} kunjungan)`,
+                action: `Webmaster: post tajuk artikel #1 sekarang. Waktu terbaik: 12-2PM dan 7-9PM.`
+            });
+        }
+
+        const x = sortedSources.find(s => s.label === 'X (Twitter)');
+        if (x) {
+            watchThis.push({
+                alert: `🐦 X (Twitter) — ${x.count} kunjungan hari ini`,
+                action: `Webmaster: tweet berita terkini dengan tajuk pendek. Tag akaun relevan untuk reach lebih luas.`
+            });
+        }
+
+        if (discoverTotal > 50) {
+            watchThis.push({
+                alert: `🔍 Google Discover aktif — ${discoverTotal} kunjungan`,
+                action: `Editor: pastikan artikel baharu siap sebelum 9AM esok. Discover suka kandungan yang konsisten.`
+            });
+        }
+
+        const highEngage = articlePages.filter(p => (p.stats?.engaged_time?.avg || 0) > 40);
+        if (highEngage.length > 0) {
+            watchThis.push({
+                alert: `📖 ${highEngage.length} artikel dengan bacaan 40+ minit`,
+                action: `Pembaca mahu kandungan mendalam. Tambah konteks latar belakang untuk cerita breaking.`
+            });
+        }
+
+        if (sections.length > 0 && sections[0].visitors > 100) {
+            watchThis.push({
+                alert: `📂 ${sections[0].name} — seksyen paling aktif (${sections[0].visitors} pembaca)`,
+                action: `Editor: pastikan ${sections[0].name} ada cerita baharu. Ini tempat pembaca paling setia.`
+            });
+        }
+
+        if (watchThis.length < 2) {
+            watchThis.push({
+                alert: `📊 Trafik stabil hari ini`,
+                action: `Terus update konsisten untuk tahan perhatian pembaca.`
+            });
+        }
+
+        return { doMore, watchThis };
+    }
+
+    function detectSection(path) {
+        const p = path || '';
+        if (p.includes('/berita/nasional') || p.includes('/berita/kes')) return 'Nasional';
+        if (p.includes('/dunia/')) return 'Dunia';
+        if (p.includes('/hiburan/') || p.includes('/selebriti/')) return 'Hiburan';
+        if (p.includes('/sukan/') || p.includes('/bola/')) return 'Sukan';
+        if (p.includes('/bisnes/') || p.includes('/ekonomi/')) return 'Bisnes';
+        if (p.includes('/berita/')) return 'Berita';
+        if (p.endsWith('/') && !path.includes('.')) return 'Homepage';
+        return 'Other';
+    }
+
+    function extractKeywords(title) {
+        const stopWords = new Set(['dan','di','ke','dengan','yang','untuk','ini','itu','ada','tidak','RM','oleh','atau','lebih','saya','anda','kami','mereka','dalam','dari','pada','bagi','akan','serta','juga','ia','beliau','the','and','a','of','in','to','is','for','atau','untuk']);
+        const words = title.split(/\s+/)
+            .map(w => w.replace(/[^a-zA-Z0-9\s]/g, '').trim())
+            .filter(w => w.length > 3 && !stopWords.has(w.toLowerCase()) && !/^\d+$/.test(w));
+        return [...new Set(words)].slice(0, 4);
+    }
+
+    // ============================================================
+    //  WEBMASTER ACTION PLAN — DETAILED
+    // ============================================================
+    function buildWebmasterPlan(data) {
+        const plans = [];
+        const topArticle = data.topArticles[0];
+        const topTitle = topArticle?.title || 'top article';
+        const topUrl = topArticle?.path || '';
+
+        // --- FACEBOOK ---
+        plans.push({
+            platform: 'Facebook',
+            icon: '📘',
+            cls: 'facebook',
+            steps: []
+        });
+
+        const fbPlan = plans[plans.length - 1];
+
+        if (data.fbSource && data.fbSource.count > 20) {
+            fbPlan.steps.push({ num: 1, text: `<strong>Post tajuk artikel #1 sekarang:</strong> "${topTitle.substring(0, 60)}${topTitle.length > 60 ? '...' : ''}"`, highlight: null });
+            fbPlan.steps.push({ num: 2, text: `Gunakan <strong>gambar cover yang besar dan menarik</strong> — elak gambar kecil atau logo je`, highlight: null });
+            fbPlan.steps.push({ num: 3, text: `Tambah <strong>soalan untuk engage</strong>: "Apa pendapat anda?" atau "Share kalau setuju"`, highlight: 'Contoh: "Apa pandangan anda tentang isu ini? Kongsi di ruangan komen 👇"' });
+        } else {
+            fbPlan.steps.push({ num: 1, text: `<strong>Post artikel trending sekarang</strong> — Facebook boleh jadi lebih aktif`, highlight: null });
+            fbPlan.steps.push({ num: 2, text: `Gunakan <strong>gambar besar + tajuk yang menarik</strong>`, highlight: null });
+            fbPlan.steps.push({ num: 3, text: `Test tajuk soalan: <strong>"Apa pendapat anda?"</strong> untuk dapat lebih banyak shares`, highlight: null });
+        }
+
+        fbPlan.times = ['12:00–2:00 PM', '7:00–9:00 PM'];
+        fbPlan.priority = data.fbSource && data.fbSource.count > 30 ? 'HIGH' : 'MEDIUM';
+
+        // --- X (TWITTER) ---
+        plans.push({
+            platform: 'X (Twitter)',
+            icon: '🐦',
+            cls: 'twitter',
+            steps: []
+        });
+
+        const xPlan = plans[plans.length - 1];
+
+        if (data.xSource && data.xSource.count > 10) {
+            xPlan.steps.push({ num: 1, text: `<strong>Tweet berita terkini sekarang:</strong> "TERKINI: ${topTitle.substring(0, 80)}${topTitle.length > 80 ? '...' : ''}"`, highlight: null });
+            xPlan.steps.push({ num: 2, text: `<strong>Tag akaun relevan</strong> — media, politik, atau selebriti yang berkaitan dengan tajuk`, highlight: 'Contoh: @车门 @其他媒体 @相关账号' });
+            xPlan.steps.push({ num: 3, text: `Guna <strong>hashtag trending</strong> jika ada — tapi jangan paksa`, highlight: null });
+        } else {
+            xPlan.steps.push({ num: 1, text: `<strong>Tweet cerita breaking</strong> — X readers mahu berita cepat dan fakta`, highlight: null });
+            xPlan.steps.push({ num: 2, text: `<strong>Keep it short dan factual</strong> — "TERKINI: [headline]" + link`, highlight: null });
+            xPlan.steps.push({ num: 3, text: `Tag <strong>akaun berpengaruh</strong> untuk reach lebih luas`, highlight: null });
+        }
+
+        xPlan.times = ['8:00–10:00 AM', '12:00–2:00 PM', '6:00–8:00 PM'];
+        xPlan.priority = data.xSource && data.xSource.count > 15 ? 'HIGH' : 'LOW';
+
+        // --- WHATSAPP ---
+        plans.push({
+            platform: 'WhatsApp',
+            icon: '📲',
+            cls: 'whatsapp',
+            steps: []
+        });
+
+        const waPlan = plans[plans.length - 1];
+        waPlan.steps.push({ num: 1, text: `<strong>Kongsi artikel viral di group WhatsApp</strong> — forwarded articles drive traffic tinggi`, highlight: null });
+        waPlan.steps.push({ num: 2, text: `<strong>Gunakan excerpt menarik</strong> sebagai mesej — bukan link sahaja`, highlight: 'Contoh: "Baca ni 🔥 [1-2 ayat menarik dari artikel]... bit.ly/xxx"' });
+        waPlan.steps.push({ num: 3, text: `<strong>Sasaran: 5 group aktif</strong> — media, komuniti, berita tempatan`, highlight: null });
+
+        waPlan.times = ['9:00–11:00 AM', '6:00–8:00 PM'];
+        waPlan.priority = 'MEDIUM';
+
+        return plans;
+    }
+
+    function renderWebmasterActions(plans, data) {
+        const topArticle = data.topArticles[0];
+        const topTitle = topArticle?.title || 'top article';
+
+        let html = '';
+
+        plans.forEach(plan => {
+            const priorityColor = plan.priority === 'HIGH' ? 'var(--yellow)' : plan.priority === 'LOW' ? 'var(--text-dim)' : 'var(--blue)';
+            html += `
+            <div class="wm-platform-section">
+                <div class="wm-platform-header">
+                    <div class="wm-platform-label ${plan.cls}">${plan.icon} ${plan.platform}</div>
+                    <div style="display:flex;align-items:center;gap:6px;">
+                        <span style="font-size:9px;font-weight:700;color:${priorityColor};text-transform:uppercase;letter-spacing:0.3px;">${plan.priority} PRIORITY</span>
+                        <span class="wm-action-pill">Webmaster</span>
+                    </div>
+                </div>
+                <ul class="wm-action-steps">
+                    ${plan.steps.map(s => `
+                    <li class="wm-action-step">
+                        <div class="step-num">${s.num}</div>
+                        <div class="step-text">${s.text}</div>
+                    </li>`).join('')}
+                </ul>
+                ${plan.steps[0].highlight ? `<div class="wm-step-highlight">💡 ${plan.steps[0].highlight}</div>` : ''}
+                <div style="margin-top:10px;">
+                    <span style="font-size:10px;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:0.3px;display:block;margin-bottom:6px;">Best Posting Times:</span>
+                    <div class="wm-best-times">
+                        ${plan.times.map(t => `<span class="time-chip">${t}</span>`).join('')}
+                    </div>
+                </div>
+            </div>`;
+        });
+
+        return html;
+    }
+
+    // ============================================================
+    //  UI RENDERING
+    // ============================================================
+    function renderDashboard(data) {
+        // Track refresh type
+        lastLiveRefresh = new Date();
+
+        // KPIs
+        document.getElementById('kpiReaders').textContent = formatNum(data.totalVisitors);
+        document.getElementById('kpiVisits').textContent = formatNum(data.totalVisits);
+        document.getElementById('kpiTime').textContent = Math.round(data.avgEngagement) + 'm';
+        document.getElementById('kpiSocial').textContent = formatNum(data.socialTotal);
+        document.getElementById('kpiSocialPct').textContent = `${data.socialPct}% from social`;
+        document.getElementById('kpiReadersTrend').textContent = `${formatNum(data.totalVisitors)} readers active now`;
+
+        // Top Articles
+        const articleList = document.getElementById('articleList');
+        const maxEng = Math.max(...data.topArticles.map(p => p.stats?.engaged_time?.avg || 1), 1);
+        const maxVis = Math.max(...data.topArticles.map(p => p.stats?.people || 0), 1);
+
+        articleList.innerHTML = data.topArticles.slice(0, 10).map((p, i) => {
+            const title = truncate(p.title || 'Untitled', 65);
+            const people = p.stats?.people || 0;
+            const engagedTime = p.stats?.engaged_time?.avg || 0;
+            const refs = p.stats?.toprefs || [];
+            const topRef = refs[0];
+            const engPct = Math.round((engagedTime / maxEng) * 100);
+
+            let refTag = '';
+            if (topRef) {
+                if (topRef.domain === 'Google Discover') refTag = `<span class="meta-tag discover">Discover</span>`;
+                else if (topRef.domain === 'Google Search') refTag = `<span class="meta-tag search">Search</span>`;
+                else if (topRef.domain === 'Facebook') refTag = `<span class="meta-tag social">FB</span>`;
+            }
+
+            return `
+            <li class="article-item">
+                <div class="article-rank rank-${i+1 <= 3 ? i+1 : ''}">${i+1}</div>
+                <div class="article-body">
+                    <div class="article-title">${title}</div>
+                    <div class="article-meta">${refTag}</div>
+                </div>
+                <div class="article-stats">
+                    <div class="stat-readers">${formatNum(people)}</div>
+                    <div class="stat-readers-label">readers</div>
+                    <div class="engagement-bar-wrap">
+                        <div class="engagement-bar" style="width:${engPct}%"></div>
+                    </div>
+                </div>
+            </li>`;
+        }).join('');
+
+        // Traffic Sources
+        const sourcesBody = document.getElementById('sourcesBody');
+        sourcesBody.innerHTML = data.sortedSources.slice(0, 6).map(s => `
+            <div class="source-item">
+                <div class="source-left">
+                    <div class="source-icon ${s.icon}">${getEmoji(s.label)}</div>
+                    <div class="source-name">${s.label}</div>
+                </div>
+                <div>
+                    <span class="source-visitors">${formatNum(s.count)}</span>
+                    <span class="source-pct">${((s.count / data.sourceTotal) * 100).toFixed(0)}%</span>
+                </div>
+            </div>`).join('');
+
+        // Sections
+        const sectionGrid = document.getElementById('sectionGrid');
+        const maxSecVis = Math.max(...data.sections.map(s => s.visitors), 1);
+        sectionGrid.innerHTML = data.sections.slice(0, 8).map(s => {
+            const pct = Math.round((s.visitors / maxSecVis) * 100);
+            const barClass = pct > 60 ? 'high' : pct > 30 ? 'mid' : 'low';
+            return `
+            <div class="section-card">
+                <div class="section-name">${s.name}</div>
+                <div class="section-visitors">${formatNum(s.visitors)}</div>
+                <div class="section-bar-bg"><div class="section-bar-fill ${barClass}" style="width:${pct}%"></div></div>
+                <div class="section-meta">${s.articles} articles · ${Math.round(s.avgEng)}m avg</div>
+            </div>`;
+        }).join('');
+
+        // DO MORE
+        document.getElementById('doMore').innerHTML = data.recommendations.doMore.slice(0, 4).map(r => `
+            <li>
+                <div class="rec-label">${r.angle}</div>
+                <div class="rec-title">"${r.title}"</div>
+                <div class="rec-why">${r.why}</div>
+                ${r.tags.length > 0 ? `<div class="rec-tags">${r.tags.map(t => `<span class="rec-tag keyword">${t}</span>`).join('')}</div>` : ''}
+            </li>`).join('');
+
+        // WATCH THIS
+        document.getElementById('watchThis').innerHTML = data.recommendations.watchThis.slice(0, 4).map(w => `
+            <li>
+                <div class="rec-title" style="font-size:13px;margin-bottom:5px;">${w.alert}</div>
+                <div class="rec-why">${w.action}</div>
+            </li>`).join('');
+
+        // Webmaster Action Plan
+        const webmasterPlans = buildWebmasterPlan(data);
+        document.getElementById('webmasterBody').innerHTML = renderWebmasterActions(webmasterPlans, data);
+
+        // Session badge
+        document.getElementById('sessionBadge').textContent = `👥 ${formatNum(data.totalVisitors)} reading now`;
+
+        // Update timestamps
+        updateTimestamps();
+    }
+
+    function updateTimestamps() {
+        const now = new Date();
+        const nextFull = getNextFullRefresh();
+
+        function formatNext(date) {
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // Live sections — show "LIVE every 30s"
+        // Scheduled sections — show "Updated at XX:XX | Next: YY:YY"
+        document.getElementById('doMoreTimestamp').innerHTML = `
+            <span class="dot">●</span> Updated ${lastFullRefresh ? formatNext(lastFullRefresh) : 'now'} · Next: ${formatNext(nextFull)}`;
+
+        document.getElementById('watchTimestamp').innerHTML = `
+            <span class="dot">●</span> Updated ${lastFullRefresh ? formatNext(lastFullRefresh) : 'now'} · Next: ${formatNext(nextFull)}`;
+
+        document.getElementById('webmasterTimestamp').innerHTML = `
+            <span class="dot">●</span> Updated ${lastFullRefresh ? formatNext(lastFullRefresh) : 'now'} · Next: ${formatNext(nextFull)}`;
+
+        document.getElementById('sectionsTimestamp').innerHTML = `
+            <span class="dot">●</span> Updated ${lastFullRefresh ? formatNext(lastFullRefresh) : 'now'} · Next: ${formatNext(nextFull)}`;
+    }
+
+    function getEmoji(label) {
+        if (label.includes('Google')) return '🔍';
+        if (label.includes('Facebook')) return '📘';
+        if (label.includes('Twitter') || label.includes('X')) return '🐦';
+        if (label.includes('YouTube')) return '▶️';
+        if (label.includes('Direct')) return '🔗';
+        if (label.includes('Yahoo')) return '📧';
+        return '🌐';
+    }
+
+    function formatNum(n) {
+        if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+        if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+        return Math.round(n).toString();
+    }
+
+    function truncate(str, len) {
+        return str.length > len ? str.substring(0, len) + '...' : str;
+    }
+
+    // ============================================================
+    //  SCHEDULE
+    // ============================================================
+    function getNextFullRefresh() {
+        const now = new Date();
+        for (const slot of CONFIG.refreshSlots) {
+            const [h, m] = slot.split(':').map(Number);
+            const t = new Date(now); t.setHours(h, m, 0, 0);
+            if (t > now) return t;
+        }
+        const [h, m] = CONFIG.refreshSlots[0].split(':').map(Number);
+        const tomorrow = new Date(now); tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(h, m, 0, 0);
+        return tomorrow;
+    }
+
+    function updateSchedule() {
+        const now = new Date();
+        const hour = now.getHours();
+        const min = now.getMinutes();
+        const currentSlot = CONFIG.refreshSlots.findIndex(slot => {
+            const [sh, sm] = slot.split(':').map(Number);
+            return sh === hour && Math.abs(sm - min) < 15;
+        });
+
+        const slots = ['dot-0745', 'dot-1345', 'dot-1645', 'dot-1945'];
+        slots.forEach((id, i) => {
+            const el = document.getElementById(id);
+            el.className = 'schedule-dot' + (i === currentSlot ? ' active' : '');
+        });
+    }
+
+    function updateCountdown() {
+        const next = getNextFullRefresh();
+        const now = new Date();
+        const diff = next - now;
+        const h = Math.floor(diff / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+
+        document.getElementById('countdown').textContent = `Next: ${h}h ${m}m`;
+        document.getElementById('nextSlotTime').textContent = next.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        updateSchedule();
+    }
+
+    function showToast(msg) {
+        const toast = document.getElementById('refreshToast');
+        document.getElementById('toastText').textContent = msg || 'Refreshing...';
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    // ============================================================
+    //  MAIN REFRESH
+    // ============================================================
+    async function refreshDashboard(showToastFlag = false, isFullRefresh = false) {
+        if (showToastFlag) showToast(isFullRefresh ? 'Full refresh complete' : 'Live data updated');
+
+        try {
+            const [pagesData, refsData] = await Promise.all([fetchTopPages(), fetchReferrers()]);
+            const processed = processData(pagesData, refsData);
+            renderDashboard(processed);
+
+            if (isFullRefresh) {
+                lastFullRefresh = new Date();
+                updateTimestamps();
+            }
+
+            document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
+            document.getElementById('liveText').textContent = 'Live Data Connected';
+            document.getElementById('sessionBadge').textContent = `👥 ${formatNum(processed.totalVisitors)} reading now`;
+        } catch (err) {
+            console.error(err);
+            document.getElementById('liveText').textContent = 'Connection issue';
+            document.getElementById('sessionBadge').textContent = '⚠ Connection Error';
+        }
+    }
+
+    function refreshNow() { refreshDashboard(true, true); }
+
+    function toggleFullscreen() {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+        else document.exitFullscreen();
+    }
+
+    // ============================================================
+    //  INIT
+    // ============================================================
+    async function init() {
+        document.getElementById('loadingOverlay').classList.remove('hidden');
+        await refreshDashboard(false, true);
+        document.getElementById('loadingOverlay').classList.add('hidden');
+
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+
+        // Live refresh every 30 seconds (Top Articles + Traffic)
+        setInterval(() => {
+            refreshDashboard(false, false);
+        }, CONFIG.checkInterval);
+
+        // Full refresh every 5 minutes (all sections) — for production, match this to the 4 scheduled slots
+        setInterval(() => {
+            refreshDashboard(false, true);
+        }, CONFIG.fullRefreshInterval);
+    }
+
+    init();
+    </script>
+</body>
+</html>
